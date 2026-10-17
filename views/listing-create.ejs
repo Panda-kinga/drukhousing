@@ -1,0 +1,8 @@
+<%- include('partials/header') %><section class="form-panel"><a class="back" href="/landlord/dashboard">← My listings</a><span class="eyebrow">MAKE ROOM FOR NEW BEGINNINGS</span><h1>List your home</h1><p class="muted">A few details to help tenants find the right fit.</p>
+<form action="/landlord/listings" method="POST" enctype="multipart/form-data" class="stack"><input type="hidden" name="_csrf" value="<%= csrf %>">
+<label for="title">Listing title</label><input id="title" name="title" maxlength="150" placeholder="A cosy family home in Paro" required>
+<label for="location">Location</label><input id="location" name="location" maxlength="150" placeholder="Town / area, dzongkhag" required>
+<div class="form-grid"><div><label for="price">Monthly rent (Nu.)</label><input id="price" name="price" type="number" min="0.01" max="9999999999.99" step="0.01" required></div><div><label for="type">Home type</label><select id="type" name="type" required><option value="">Choose type</option><option value="apartment">Apartment</option><option value="house">House</option><option value="room">Room</option></select></div></div>
+<div class="form-grid"><div><label for="lease_years">Lease duration (years)</label><input id="lease_years" name="lease_years" type="number" min="1" max="100" step="1" required></div><div><label for="deadline">Application deadline (Bhutan time)</label><input id="deadline" name="deadline" type="datetime-local" required></div></div>
+<label for="photos">Home photos</label><input id="photos" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple required><small>1–6 photos. JPG, PNG or WebP. Maximum 5 MB each.</small>
+<button type="submit">Publish listing</button></form></section><%- include('partials/footer') %>

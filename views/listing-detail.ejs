@@ -1,0 +1,10 @@
+<%- include('partials/header') %><section class="detail"><a class="back" href="/#homes">← Browse homes</a><div class="section-heading"><div><span class="eyebrow"><%= listing.location %></span><h1><%= listing.title %></h1></div><span class="badge <%= listing.is_open?'accepted':'rejected' %>"><%= listing.is_open?'Applications open':'Applications closed' %></span></div>
+<div class="photo-gallery"><% for (const photo of photos) { %><a href="/photos/<%= photo.id %>" target="_blank" rel="noopener"><img src="/photos/<%= photo.id %>" alt="Photo of <%= listing.title %>"></a><% } %></div>
+<div class="detail-bottom"><div><p class="price big">Nu. <%= money(listing.price) %><span> / month</span></p><div class="facts"><div><small>HOME TYPE</small><strong class="capitalize"><%= listing.type %></strong></div><div><small>LEASE DURATION</small><strong><%= listing.lease_years %> years</strong></div><div><small>APPLY BY · BTT</small><strong><%= formatDate(listing.deadline) %></strong></div></div></div><div class="apply-box">
+<% if (application) { %><p>You have applied for this home.</p><span class="badge <%= application.status %>"><%= application.status %></span><a class="button" href="/tenant/applications">My applications</a>
+<% } else if (!listing.is_open) { %><h3>Applications are closed</h3><p>The landlord can now review applications.</p>
+<% } else if (!user) { %><h3>Could this be your next home?</h3><a class="button" href="/login">Log in to apply</a>
+<% } else if (user.role==='tenant') { %><h3>Make your next move.</h3><a class="button" href="/listings/<%= listing.id %>/apply">Apply for this home ↗</a>
+<% } else { %><p>Applications are available to tenant accounts.</p><% } %>
+<% if (user && user.role==='landlord' && user.id===listing.landlord_id) { %><a href="/landlord/listings/<%= listing.id %>/applications">View applications</a><% } %>
+</div></div></section><%- include('partials/footer') %>

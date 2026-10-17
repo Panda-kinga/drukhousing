@@ -1,0 +1,5 @@
+<%- include('partials/header') %>
+<section class="auth-layout"><div class="auth-picture"><img src="/images/bhutan-home.png" alt="Traditional Bhutanese house"><div><span class="eyebrow">FEEL AT HOME</span><h2>Good to have<br>you back.</h2></div></div><div class="auth-panel"><span class="eyebrow">KUZUZANGPO</span><h1>Welcome back</h1><p class="muted">Log in to continue your home journey.</p>
+<% if (error) { %><p class="alert" role="alert"><%= error %></p><% } %>
+<form action="/login" method="POST" class="stack"><input type="hidden" name="_csrf" value="<%= csrf %>"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" required><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required><a class="forgot" href="/forgot-password">Forgot password?</a><button type="submit">Log in</button></form><p class="form-bottom">New here? <a href="/signup">Create an account</a></p><small>Verify your email before your first login.</small></div></section>
+<%- include('partials/footer') %>

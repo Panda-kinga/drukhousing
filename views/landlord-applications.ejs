@@ -1,0 +1,23 @@
+<%- include('partials/header') %>
+<section class="page">
+  <a class="back" href="/landlord/dashboard">&larr; My listings</a>
+  <span class="eyebrow">APPLICATIONS</span>
+  <h1><%= listing.title %></h1>
+  <p class="muted">Deadline: <%= formatDate(listing.deadline) %> BTT</p>
+  <p class="notice"><strong>Review applications</strong> &mdash; You can accept or reject pending applications at any time. Decisions are saved immediately.</p>
+  <% if (!applications.length) { %><div class="empty">No applications for this home yet.</div><% } %>
+  <div class="review-list">
+    <% for (const application of applications) { %>
+      <article class="review-card">
+        <div class="section-heading"><div><h2><%= application.full_name %></h2><p><%= application.phone %></p></div><span class="badge <%= application.status %>"><%= application.status %></span></div>
+        <% if (application.notes) { %><p class="user-text"><%= application.notes %></p><% } %>
+        <div class="documents"><% for (const document of application.documents) { %><a href="/documents/<%= document.id %>">Download document <%= document.id %> &darr;</a><% } %></div>
+        <small>Applied <%= formatDate(application.created_at) %> BTT</small>
+        <% if (application.status === 'pending') { %>
+          <form action="/landlord/listings/<%= listing.id %>/applications/<%= application.id %>" method="POST" class="actions"><input type="hidden" name="_csrf" value="<%= csrf %>"><button type="submit" name="status" value="accepted">Accept application</button><button type="submit" name="status" value="rejected" class="outline" data-confirm="Reject this application?">Reject</button></form>
+        <% } %>
+      </article>
+    <% } %>
+  </div>
+</section>
+<%- include('partials/footer') %>
