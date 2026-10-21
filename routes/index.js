@@ -9,6 +9,8 @@ const feedback = require("../controllers/feedbackController");
 const admin = require("../controllers/superAdminController");
 const {
   requireAuth,
+  requireApiAuth,
+  requireApiTenant,
   requireTenant,
   requireLandlord,
   requireSuperAdmin,
@@ -42,6 +44,7 @@ router.post(
 router.get("/documents/:id", requireAuth, application.document);
 router.get("/landlord/dashboard", requireLandlord, landlord.dashboard);
 router.get("/landlord/listings/new", requireLandlord, listing.showCreate);
+router.get("/landlord/listings/:id/edit", requireLandlord, listing.showEdit);
 router.post(
   "/landlord/listings",
   requireLandlord,
@@ -50,6 +53,7 @@ router.post(
   upload.validateFiles,
   listing.create,
 );
+router.post("/landlord/listings/:id", requireLandlord, csrf.check, listing.update);
 router.get(
   "/landlord/listings/:id/applications",
   requireLandlord,
@@ -65,12 +69,25 @@ router.get("/tenant/feedback", requireTenant, feedback.tenantPage);
 router.post("/tenant/feedback", requireTenant, csrf.check, feedback.submit);
 router.get("/landlord/feedback", requireLandlord, feedback.landlordPage);
 router.get("/superadmin/dashboard", requireSuperAdmin, admin.dashboard);
+router.get("/superadmin/users", requireSuperAdmin, admin.users);
+router.post("/superadmin/users/:id/active", requireSuperAdmin, csrf.check, admin.setUserActive);
+router.post("/superadmin/users/:id/verify", requireSuperAdmin, csrf.check, admin.verifyUser);
+router.post("/superadmin/users/:id/role", requireSuperAdmin, csrf.check, admin.changeRole);
+router.get("/superadmin/properties", requireSuperAdmin, admin.properties);
 router.post(
   "/superadmin/listings/:id/deactivate",
   requireSuperAdmin,
   csrf.check,
   admin.deactivate,
 );
+router.post("/superadmin/listings/:id/restore", requireSuperAdmin, csrf.check, admin.restore);
+router.get("/superadmin/inquiries", requireSuperAdmin, admin.inquiries);
+router.get("/superadmin/feedback", requireSuperAdmin, admin.feedback);
+router.post("/superadmin/feedback/:id/delete", requireSuperAdmin, csrf.check, admin.deleteFeedback);
 router.get("/api/listings", listing.apiList);
 router.get("/api/listings/:id", listing.apiDetail);
+router.get("/api/locations", listing.apiLocations);
+router.get("/api/properties", listing.apiList);
+router.get("/api/properties/:id", listing.apiDetail);
+router.post("/api/inquiries", requireApiAuth, requireApiTenant, application.apiCreate);
 module.exports = router;

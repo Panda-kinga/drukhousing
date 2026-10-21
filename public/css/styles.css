@@ -160,6 +160,77 @@ textarea:focus-visible {
   border-color: transparent;
   box-shadow: none;
 }
+.admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 24px 0 34px;
+  padding: 8px;
+  background: var(--tint);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.admin-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 7px;
+  color: var(--maroon);
+  text-decoration: none;
+  font-weight: 600;
+}
+.admin-nav-link:hover,
+.admin-nav-link:focus-visible {
+  background: white;
+  text-decoration: none;
+}
+.admin-filter-form {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin: 24px 0;
+  padding: 18px;
+  background: var(--tint);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.admin-actions form,
+.admin-actions-cell form {
+  margin: 0;
+}
+.admin-actions-cell {
+  min-width: 190px;
+}
+.admin-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0 35px;
+}
+.status-pill {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.status-active {
+  color: #28633d;
+  background: #e5f3e8;
+}
+.status-removed {
+  color: #8b3c32;
+  background: #f7e2de;
+}
 main {
   max-width: 1240px;
   margin: auto;
@@ -1142,6 +1213,21 @@ th {
   }
   .stats span {
     font-size: 10px;
+  }
+  .admin-filter-form {
+    grid-template-columns: 1fr;
+  }
+  .admin-nav {
+    gap: 6px;
+  }
+  .admin-nav-link {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 8px 10px;
+  }
+  .admin-pagination {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .application-row {
     padding: 20px;

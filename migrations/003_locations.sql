@@ -1,0 +1,9 @@
+BEGIN;
+
+ALTER TABLE listings
+  ADD COLUMN IF NOT EXISTS dzongkhag VARCHAR(50),
+  ADD COLUMN IF NOT EXISTS gewog VARCHAR(80);
+
+CREATE INDEX IF NOT EXISTS listings_dzongkhag ON listings(dzongkhag);
+
+COMMIT;

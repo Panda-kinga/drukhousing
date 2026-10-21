@@ -8,12 +8,20 @@ async function createUser(name, email, password, role, verificationToken) {
     [name, email, hash, role, verificationToken],
   );
 }
+async function createSuperAdmin(name, email, password) {
+  const hash = await bcrypt.hash(password, 12);
+  return db.one(
+    `INSERT INTO users(name,email,password_hash,role,is_verified)
+    VALUES($1,$2,$3,'superadmin',true) RETURNING id,name,email,role`,
+    [name, email, hash],
+  );
+}
 function findByEmail(email) {
   return db.oneOrNone("SELECT * FROM users WHERE email=$1", [email]);
 }
 function findById(id) {
   return db.oneOrNone(
-    "SELECT id,name,email,role,is_verified FROM users WHERE id=$1",
+    "SELECT id,name,email,role,is_verified,is_active FROM users WHERE id=$1",
     [id],
   );
 }
@@ -53,11 +61,41 @@ async function resetPassword(token, password) {
 }
 function getAllUsers() {
   return db.any(
-    "SELECT id,name,email,role,is_verified,created_at FROM users ORDER BY id DESC",
+    "SELECT id,name,email,role,is_verified,is_active,created_at FROM users ORDER BY id DESC",
   );
+}
+function adminList({ search = "", role = "", verified = "", page = 1, pageSize = 10 }) {
+  const offset = (page - 1) * pageSize;
+  return Promise.all([
+    db.any(`SELECT id,name,email,role,is_verified,is_active,created_at FROM users
+      WHERE (name ILIKE $1 OR email ILIKE $1) AND ($2='' OR role=$2)
+      AND ($3='' OR is_verified=($3='true')) ORDER BY id DESC LIMIT $4 OFFSET $5`,
+      [`%${search}%`, role, verified, pageSize, offset]),
+    db.one(`SELECT COUNT(*)::int AS total FROM users
+      WHERE (name ILIKE $1 OR email ILIKE $1) AND ($2='' OR role=$2)
+      AND ($3='' OR is_verified=($3='true'))`, [`%${search}%`, role, verified]),
+  ]);
+}
+function setActive(id, active) {
+  return db.oneOrNone("UPDATE users SET is_active=$2 WHERE id=$1 AND role <> 'superadmin' RETURNING id", [id, active]);
+}
+function verifyUser(id) {
+  return db.oneOrNone("UPDATE users SET is_verified=true, verification_token=NULL WHERE id=$1 AND role <> 'superadmin' AND NOT is_verified RETURNING id", [id]);
+}
+function changeRole(id, role) {
+  return db.tx(async (t) => {
+    const updated = await t.oneOrNone(
+      "UPDATE users SET role=$2 WHERE id=$1 AND role IN ('tenant','landlord') RETURNING id",
+      [id, role],
+    );
+    if (updated && role === "tenant")
+      await t.none("UPDATE listings SET is_active=false WHERE landlord_id=$1", [id]);
+    return updated;
+  });
 }
 module.exports = {
   createUser,
+  createSuperAdmin,
   findByEmail,
   findById,
   verifyPassword,
@@ -66,4 +104,8 @@ module.exports = {
   findByResetToken,
   resetPassword,
   getAllUsers,
+  adminList,
+  setActive,
+  verifyUser,
+  changeRole,
 };

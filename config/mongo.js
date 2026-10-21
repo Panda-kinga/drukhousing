@@ -11,7 +11,7 @@ async function connectMongo() {
     connecting = client
       .connect()
       .then(() => {
-        database = client.db("drukhousing_feedback");
+        database = client.db(process.env.MONGO_DB_NAME || "drukhousing_feedback");
         return database;
       })
       .catch(async (error) => {

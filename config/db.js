@@ -7,5 +7,6 @@ const db = pgp({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   options: "-c timezone=Asia/Thimphu",
+  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
 });
 module.exports = db;

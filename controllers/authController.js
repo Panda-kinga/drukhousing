@@ -3,11 +3,15 @@ const User = require("../models/User");
 const { sendEmail } = require("../config/mailer");
 const v = require("../middleware/validation");
 const { dashboard } = require("../middleware/auth");
+const { isValidEmail, isValidPassword } = require("../utils/validators");
 function token() {
   return crypto.randomBytes(32).toString("hex");
 }
 function hashToken(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
+}
+function baseUrl() {
+  return (process.env.BASE_URL || "").replace(/\/$/, "");
 }
 function showSignup(req, res) {
   res.render("signup", { title: "Create an account" });
@@ -19,10 +23,13 @@ async function signup(req, res) {
   const name = v.text(req.body.name, "Name", 100);
   const email = v.email(req.body.email);
   const password = v.password(req.body.password);
+  if (!isValidEmail(email) || !isValidPassword(password))
+    v.fail("Enter a valid email and password.");
   const role = req.body.role;
   if (!["tenant", "landlord"].includes(role))
     v.fail("Choose Tenant or Landlord.");
   const verificationToken = token();
+  const verificationLink = baseUrl() + "/verify/" + verificationToken;
   await User.createUser(
     name,
     email,
@@ -34,18 +41,18 @@ async function signup(req, res) {
     await sendEmail(
       email,
       "Verify your DrukHousing account",
-      "Kuzuzangpo " +
-        name +
-        "! Verify your email: " +
-        process.env.APP_URL +
-        "/verify/" +
-        verificationToken,
+      {
+        name,
+        link: verificationLink,
+        text: "Please verify your email address to activate your account.",
+      },
     );
   } catch (error) {
     console.error(
       "Verification email could not be sent:",
       error.code || "SMTP error",
     );
+    console.error("Verification link:", verificationLink);
     return res
       .status(503)
       .render("message", {
@@ -83,7 +90,8 @@ async function login(req, res) {
     !password ||
     Buffer.byteLength(password) > 72 ||
     !(await User.verifyPassword(password, user.password_hash)) ||
-    !user.is_verified
+    !user.is_verified ||
+    user.is_active === false
   ) {
     return res
       .status(401)
@@ -125,10 +133,11 @@ async function forgotPassword(req, res) {
       await sendEmail(
         email,
         "Reset your DrukHousing password",
-        "This link expires in one hour: " +
-          process.env.APP_URL +
-          "/reset-password/" +
-          resetToken,
+        {
+          name: "there",
+          link: baseUrl() + "/reset-password/" + resetToken,
+          text: "This password reset link expires in one hour.",
+        },
       );
     } catch (error) {
       console.error("Password reset email failed:", error.code || "SMTP error");

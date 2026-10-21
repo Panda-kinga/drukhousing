@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Find a place to call home in Bhutan. Browse rentals and apply with DrukHousing.">
-  <title><%= title %> · DrukHousing</title>
+  <meta name="description" content="Find a place to call home in Bhutan. Browse rentals and apply with <%= siteName %>." />
+  <title><%= title %> · <%= siteName %></title>
   <link rel="icon" href="/images/mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/css/styles.css">
 </head>
@@ -12,7 +12,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <div class="roofline" aria-hidden="true"></div>
 <header class="site-header">
-  <a class="brand" href="/"><img src="/images/mark.svg" alt="" width="38" height="38">Druk<span>Housing</span></a>
+  <a class="brand" href="/"><img src="/images/mark.svg" alt="" width="38" height="38"><%= siteName %></a>
   <nav aria-label="Main navigation">
     <a href="/">Find a home</a>
     <% if (user) { %>

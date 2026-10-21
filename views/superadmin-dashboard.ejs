@@ -1,1 +1,28 @@
-<%- include('partials/header') %><section class="page"><span class="eyebrow">PLATFORM OVERVIEW</span><h1>Superadmin dashboard</h1><h2>All users</h2><div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Verified</th></tr></thead><tbody><% for (const person of users) { %><tr><td><%= person.id %></td><td><%= person.name %></td><td><%= person.email %></td><td><%= person.role %></td><td><%= person.is_verified?'Yes':'No' %></td></tr><% } %></tbody></table></div><h2>All listings</h2><div class="table-wrap"><table><thead><tr><th>Home</th><th>Landlord</th><th>Status</th><th>Action</th></tr></thead><tbody><% for (const listing of listings) { %><tr><td><% if (listing.is_active) { %><a href="/listings/<%= listing.id %>"><%= listing.title %></a><% } else { %><%= listing.title %><% } %></td><td><%= listing.landlord_name %></td><td><%= listing.is_active?'Active':'Deactivated' %></td><td><% if (listing.is_active) { %><form action="/superadmin/listings/<%= listing.id %>/deactivate" method="POST" data-confirm="Deactivate this listing? It will disappear from tenant and landlord pages."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="outline small" type="submit">Deactivate</button></form><% } else { %>—<% } %></td></tr><% } %></tbody></table></div></section><%- include('partials/footer') %>
+<%- include('partials/header') %>
+<section class="page">
+  <span class="eyebrow">PLATFORM OVERVIEW</span>
+  <h1>Superadmin dashboard</h1>
+  <%- include('partials/superadmin-nav') %>
+  <h2>Users</h2>
+  <div class="stats">
+    <div><span>Total users</span><strong><%= stats.users.total %></strong></div><div><span>Tenants</span><strong><%= stats.users.tenants %></strong></div><div><span>Landlords</span><strong><%= stats.users.landlords %></strong></div><div><span>Super admins</span><strong><%= stats.users.superadmins %></strong></div><div><span>Verified</span><strong><%= stats.users.verified %></strong></div><div><span>Unverified</span><strong><%= stats.users.unverified %></strong></div>
+  </div>
+  <h2>New sign-ups</h2>
+  <div class="stats">
+    <div><span>Tenants, 7 days</span><strong><%= stats.signups.tenants_7 %></strong></div><div><span>Landlords, 7 days</span><strong><%= stats.signups.landlords_7 %></strong></div><div><span>Tenants, 30 days</span><strong><%= stats.signups.tenants_30 %></strong></div><div><span>Landlords, 30 days</span><strong><%= stats.signups.landlords_30 %></strong></div>
+  </div>
+  <h2>Properties</h2>
+  <div class="stats"><div><span>Total</span><strong><%= stats.properties.total %></strong></div><div><span>Active</span><strong><%= stats.properties.active %></strong></div><div><span>Removed</span><strong><%= stats.properties.removed %></strong></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Type</th><th>Count</th></tr></thead><tbody><% for (const item of stats.propertyTypes) { %><tr><td><%= item.type %></td><td><%= item.count %></td></tr><% } %></tbody></table></div>
+  <p><strong>Top locations:</strong> <% if (stats.locations.length) { %><%= stats.locations.map((item) => item.location + ' (' + item.count + ')').join(', ') %><% } else { %>None yet<% } %></p>
+  <h2>Inquiries</h2>
+  <div class="stats"><div><span>Total</span><strong><%= stats.inquiries.total %></strong></div><div><span>Pending</span><strong><%= stats.inquiries.pending %></strong></div><div><span>Accepted</span><strong><%= stats.inquiries.accepted %></strong></div><div><span>Rejected</span><strong><%= stats.inquiries.rejected %></strong></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Property</th><th>Inquiries</th></tr></thead><tbody><% for (const item of stats.inquiryProperties) { %><tr><td><%= item.title %></td><td><%= item.inquiry_count %></td></tr><% } %></tbody></table></div>
+  <h2>Feedback</h2>
+  <% if (feedback.available) { %><p>Total: <strong><%= feedback.total %></strong> · Average rating: <strong><%= feedback.averageRating === null ? '—' : Number(feedback.averageRating).toFixed(2) %></strong></p><% } else { %><p>Feedback: unavailable</p><% } %>
+  <h2>Recent activity</h2>
+  <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead><tbody><% for (const person of stats.recentUsers) { %><tr><td><%= person.name %></td><td><%= person.email %></td><td><%= person.role %></td><td><%= formatDate(person.created_at) %></td></tr><% } %></tbody></table></div>
+  <h2>Latest admin actions</h2>
+  <div class="table-wrap"><table><thead><tr><th>Admin</th><th>Action</th><th>Target</th><th>When</th></tr></thead><tbody><% for (const item of actions) { %><tr><td><%= item.admin_name %></td><td><%= item.action %></td><td><%= item.target_type %> #<%= item.target_id %></td><td><%= formatDate(item.created_at) %></td></tr><% } %></tbody></table></div>
+</section>
+<%- include('partials/footer') %>

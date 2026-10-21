@@ -29,6 +29,22 @@ async function apply(req, res) {
   req.uploadSaved = true;
   res.redirect("/tenant/applications");
 }
+async function apiCreate(req, res) {
+  const data = {
+    full_name: v.text(req.body.full_name, "Full name", 100),
+    phone: v.text(req.body.phone, "Phone", 30),
+    notes: v.text(req.body.notes, "Notes", 2000, false),
+  };
+  if (!/^\+?[0-9 ()-]{7,20}$/.test(data.phone))
+    v.fail("Enter a valid phone number.");
+  const application = await Application.createApplication(
+    v.id(req.body.listing_id || req.body.property_id),
+    req.session.user.id,
+    data,
+    [],
+  );
+  res.status(201).json(application);
+}
 async function review(req, res) {
   const listing = await Listing.findActive(v.id(req.params.id));
   if (!listing) v.fail("Listing not found.", 404);
@@ -64,4 +80,4 @@ async function document(req, res) {
   res.set("Cache-Control", "no-store");
   res.download(path.join(folder, path.basename(document.file_path)));
 }
-module.exports = { showApply, apply, review, decide, document };
+module.exports = { showApply, apply, apiCreate, review, decide, document };

@@ -9,6 +9,7 @@ CREATE TABLE users (
  password_hash TEXT NOT NULL,
  role VARCHAR(20) NOT NULL CHECK (role IN ('tenant','landlord','superadmin')),
  is_verified BOOLEAN NOT NULL DEFAULT false,
+ is_active BOOLEAN NOT NULL DEFAULT true,
  verification_token TEXT UNIQUE,
  reset_token TEXT UNIQUE,
  reset_token_expires TIMESTAMP,
@@ -20,6 +21,8 @@ CREATE TABLE listings (
  landlord_id INTEGER NOT NULL REFERENCES users(id),
  title VARCHAR(150) NOT NULL CHECK (length(trim(title)) > 0),
  location VARCHAR(150) NOT NULL CHECK (length(trim(location)) > 0),
+ dzongkhag VARCHAR(50),
+ gewog VARCHAR(80),
  price NUMERIC(12,2) NOT NULL CHECK (price > 0 AND price < 10000000000),
  type VARCHAR(20) NOT NULL CHECK (type IN ('apartment','house','room')),
  lease_years INTEGER NOT NULL CHECK (lease_years > 0),
@@ -49,11 +52,21 @@ CREATE TABLE application_documents (
  application_id INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
  file_path TEXT NOT NULL CHECK (length(trim(file_path)) > 0)
 );
+CREATE TABLE admin_actions (
+ id SERIAL PRIMARY KEY,
+ admin_id INTEGER NOT NULL REFERENCES users(id),
+ action VARCHAR(100) NOT NULL,
+ target_type VARCHAR(50) NOT NULL,
+ target_id INTEGER NOT NULL,
+ created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Thimphu')
+);
 CREATE INDEX listings_owner ON listings(landlord_id);
+CREATE INDEX listings_dzongkhag ON listings(dzongkhag);
 CREATE INDEX listings_deadline ON listings(deadline) WHERE is_active;
 CREATE INDEX applications_tenant ON applications(tenant_id);
 CREATE INDEX photos_listing ON listing_photos(listing_id);
 CREATE INDEX documents_application ON application_documents(application_id);
+CREATE INDEX admin_actions_created ON admin_actions(created_at DESC);
 -- Foreign keys enforce existence. These triggers also enforce the person's role.
 CREATE FUNCTION check_listing_landlord() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN

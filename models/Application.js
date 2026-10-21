@@ -65,6 +65,15 @@ function acceptedForTenant(tenantId) {
     [tenantId],
   );
 }
+function allForAdmin() {
+  return db.any(`SELECT a.id,a.status,a.created_at,l.title,
+    tenant.name AS tenant_name, tenant.email AS tenant_email,
+    landlord.name AS landlord_name, landlord.email AS landlord_email
+    FROM applications a JOIN listings l ON l.id=a.listing_id
+    JOIN users tenant ON tenant.id=a.tenant_id
+    JOIN users landlord ON landlord.id=l.landlord_id
+    ORDER BY a.created_at DESC, a.id DESC`);
+}
 module.exports = {
   createApplication,
   forTenant,
@@ -72,4 +81,5 @@ module.exports = {
   findForTenant,
   decide,
   acceptedForTenant,
+  allForAdmin,
 };

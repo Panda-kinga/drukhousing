@@ -1,0 +1,12 @@
+BEGIN;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+CREATE TABLE IF NOT EXISTS admin_actions (
+ id SERIAL PRIMARY KEY,
+ admin_id INTEGER NOT NULL REFERENCES users(id),
+ action VARCHAR(100) NOT NULL,
+ target_type VARCHAR(50) NOT NULL,
+ target_id INTEGER NOT NULL,
+ created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Thimphu')
+);
+CREATE INDEX IF NOT EXISTS admin_actions_created ON admin_actions(created_at DESC);
+COMMIT;

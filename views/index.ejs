@@ -3,22 +3,23 @@
   <div class="hero-copy"><span class="eyebrow">ROOTED IN BHUTAN</span><h1>A place to<br>call <em>home.</em></h1><p>Find your next home, from a cosy room<br class="desktop-break"> to a house for the whole family.</p><a class="button" href="#homes">Explore homes <span aria-hidden="true">↗</span></a><div class="hero-note"><span class="small-diamond" aria-hidden="true">◆</span> Simple applications. New beginnings.</div></div>
   <figure class="hero-image"><img src="/images/bhutan-home.png" alt="Bhutanese-style house with traditional timber windows against a green mountain valley"><figcaption>Inspired by the homes of Bhutan · AI-created image</figcaption></figure>
 </section>
-<section class="home-principles" aria-label="Why use DrukHousing">
+<section class="home-principles" aria-label="Why use <%= siteName %>">
   <div><span class="principle-number">01</span><strong>Local living</strong><p>Homes shaped around life in Bhutan.</p></div>
   <div><span class="principle-number">02</span><strong>Simple applications</strong><p>Clear steps from search to move-in.</p></div>
   <div><span class="principle-number">03</span><strong>New beginnings</strong><p>A thoughtful way to find your next place.</p></div>
 </section>
 <section id="homes" class="homes-section">
   <div class="section-heading"><div><span class="eyebrow">FIND YOUR SPACE</span><h2>Homes open for applications</h2></div><span class="muted"><%= listings.length %> available</span></div>
-  <form class="search-bar" action="/" method="GET">
-    <div><label for="q">Location or home name</label><input id="q" name="q" value="<%= search %>" maxlength="100" placeholder="Try Thimphu, Paro or Kanglung"></div>
+  <form class="search-bar" action="/" method="GET" data-live-search data-location-search data-dzongkhag-value="<%= dzongkhag %>" data-gewog-value="<%= gewog %>">
+    <div><label for="dzongkhag">Dzongkhag</label><select id="dzongkhag" name="dzongkhag" data-dzongkhag><option value="">All Dzongkhags</option></select></div>
+    <div><label for="gewog">Gewog</label><select id="gewog" name="gewog" data-gewog disabled><option value="">All Gewogs</option></select></div>
     <div><label for="type">Home type</label><select id="type" name="type"><option value="">All homes</option><% for (const item of ['apartment','house','room']) { %><option value="<%= item %>" <%= type===item?'selected':'' %>><%= item.charAt(0).toUpperCase()+item.slice(1) %></option><% } %></select></div>
-    <button type="submit">Search homes</button><% if (search || type) { %><a href="/#homes">Clear</a><% } %>
+    <button type="submit">Search homes</button><% if (search || type || dzongkhag || gewog) { %><a href="/#homes">Clear</a><% } %>
   </form>
   <% if (!listings.length) { %><div class="empty"><h3><%= search || type ? 'No homes match your search.' : 'Your next home could be here.' %></h3><p><%= search || type ? 'Try another location or home type.' : 'No homes are open for applications yet. Check back soon.' %></p><% if (user && user.role==='landlord') { %><a class="button" href="/landlord/listings/new">List your home</a><% } %></div><% } %>
   <div class="listing-grid"><% for (const listing of listings) { %>
     <article class="listing-card"><a href="/listings/<%= listing.id %>" class="card-image"><% if (listing.photo_id) { %><img src="/photos/<%= listing.photo_id %>" alt="<%= listing.title %>" loading="lazy"><% } else { %><div class="no-photo">No photo available</div><% } %><span class="type-tag"><%= listing.type %></span></a>
-    <div class="card-body"><p class="location"><%= listing.location %></p><h3><a href="/listings/<%= listing.id %>"><%= listing.title %></a></h3><p class="price">Nu. <%= money(listing.price) %> <span>/ month</span></p><div class="card-meta"><span><%= listing.lease_years %>-year lease</span><a href="/listings/<%= listing.id %>" aria-label="View <%= listing.title %>">View home ↗</a></div><p class="deadline">Apply by <%= formatDate(listing.deadline) %> BTT</p></div></article>
+    <div class="card-body"><p class="location"><% if (listing.gewog && listing.dzongkhag) { %><%= listing.gewog %>, <%= listing.dzongkhag %><% } else { %>Location not set<% } %></p><h3><a href="/listings/<%= listing.id %>"><%= listing.title %></a></h3><p><%= listing.location %></p><p class="price">Nu. <%= money(listing.price) %> <span>/ month</span></p><div class="card-meta"><span><%= listing.lease_years %>-year lease</span><a href="/listings/<%= listing.id %>" aria-label="View <%= listing.title %>">View home ↗</a></div><p class="deadline">Apply by <%= formatDate(listing.deadline) %> BTT</p></div></article>
   <% } %></div>
 </section>
 <aside class="landlord-banner"><div><h2>Have a home to share?</h2><p>Help someone find their next beginning.</p></div><a class="button outline" href="<%= user && user.role==='landlord' ? '/landlord/listings/new' : '/signup' %>">List a home ↗</a></aside>

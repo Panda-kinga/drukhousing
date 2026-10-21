@@ -36,6 +36,8 @@ The design uses warm cream, maroon, and muted gold, with a Bhutanese house image
 8. Open **http://localhost:3000**. Do not use VS Code Live Server; this project needs Node.js.
 9. Sign up as a landlord, open the verification email, and log in. Create a listing. In another browser profile or private window, sign up and verify a tenant account, then apply.
 
+To create a super admin after the database is ready, run `npm run create-admin` and answer the terminal prompts. Super admins are not created through the signup page.
+
 There are no pre-created users, passwords or fake rental listings. The homepage shows an intentional empty state until a landlord publishes a home. You can use your own Bhutanese house photos. The included `public/images/bhutan-home.png` is AI-created decorative imagery, not a real rental offer.
 
 ## Environment values
@@ -43,16 +45,19 @@ There are no pre-created users, passwords or fake rental listings. The homepage 
 | Name | What to put there |
 | --- | --- |
 | `PORT` | `3000` |
-| `APP_URL` | `http://localhost:3000` — no trailing slash; change it if you change PORT |
+| `BASE_URL` | `http://localhost:3000` — no trailing slash; use the public URL in production |
 | `DB_HOST` | `localhost` |
 | `DB_PORT` | Usually `5432` |
 | `DB_NAME` | `drukhousing` |
 | `DB_USER` | Usually `postgres` |
 | `DB_PASS` | Your PostgreSQL password, not your pgAdmin master password |
+| `DB_SSL` | `false` locally; set to `true` for Neon PostgreSQL |
 | `MONGO_URI` | `mongodb://127.0.0.1:27017` |
+| `MONGO_DB_NAME` | MongoDB database used for tenant feedback |
 | `SESSION_SECRET` | Your long random secret |
 | `GMAIL_USER` | Your Gmail address |
 | `GMAIL_APP_PASSWORD` | A Gmail app password; not your normal Google password |
+| `MAIL_FROM_NAME` | The visible sender name, such as `Campus Eats` |
 
 If a value contains `#` or spaces, surround it with double quotes. Never paste credentials into source code or commit `.env`.
 
@@ -76,7 +81,7 @@ The complete implementation is already included. Follow these checkpoints in you
 
 ### 1. Project setup and PostgreSQL connection
 
-Inspect `package.json`, `.env.example`, `.gitignore`, `app.js`, and `config/db.js`. `npm run dev` uses nodemon; `npm start` runs Node directly.
+Inspect `package.json`, `.env.example`, `.gitignore`, `app.js`, and `config/db.js`. `npm run dev` uses nodemon and `server.js`; `npm start` runs `server.js` directly. `app.js` exports the testable Express app.
 
 For a temporary connection-only route, create **db-test.js** in the project root:
 
@@ -97,7 +102,9 @@ Run `node db-test.js`. Visit `http://localhost:3001/db-test`.
 
 **Expected:** `{"connected":true}`. If connection fails, check the PostgreSQL service, DB_NAME, DB_USER and DB_PASS. The database must already exist, but its tables are not needed for this connection test. Stop this server with Ctrl+C and delete `db-test.js`. The final app has no `/db-test` route.
 
-### 2. PostgreSQL tables
+### 2. PostgreSQL tables and migrations
+
+Create an empty database named `drukhousing`, open its pgAdmin Query Tool, and run `database/schema.sql` once. Then run every SQL file in `migrations/` in number order. The current migration adds `users.is_active` and the `admin_actions` table. For tests, create a separate `drukhousing_test` database, run the same schema and migrations there, and never point tests at the development database.
 
 In pgAdmin, select **drukhousing → Query Tool**. Open and run `database/schema.sql`. Do not run it in the `postgres` maintenance database. Run it once on an empty database; it intentionally does not delete existing data.
 
@@ -319,6 +326,8 @@ Run automated checks:
 npm test
 ```
 
+`npm test` runs the Jest and Supertest integration tests against the test databases. The test suite includes public API, inquiry, property ownership, super admin, feedback and signup coverage. Run `npx jest --coverage --runInBand` to create the HTML coverage report in `coverage/lcov-report/`.
+
 **Expected:** all checks pass. The tests use PGlite (an in-memory PostgreSQL engine) for SQL and substitutes for MongoDB/email. PGlite is a development/test dependency only; the running website uses pg-promise and your real PostgreSQL database. The deliberately failed document-save test prints `Request failed: Error`; that is expected and verifies rollback/cleanup.
 
 Before pushing:
@@ -440,7 +449,7 @@ drukhousing/
 | Login rejected | Verify the emailed link first; use the correct password. The error intentionally does not reveal account details. |
 | Reset link expired | Request a new link. Use the newest email. |
 | Form expired | Reload the form; sessions are cleared when the development server restarts. |
-| Port 3000 busy | Stop another local server, or change both PORT and APP_URL. |
+| Port 3000 busy | Stop another local server, or change `PORT` and `BASE_URL`. |
 | No homes shown | Create an active listing with a future deadline. |
 
 All displayed deadlines use **Bhutan time (Asia/Thimphu, UTC+06:00)**. Listing price means **monthly rent** and lease duration means **whole years**. Documents and notes are optional. No real account details are included in this download.

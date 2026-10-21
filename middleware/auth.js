@@ -3,7 +3,7 @@ async function loadUser(req, res, next) {
   res.locals.user = null;
   if (req.session.user) {
     const user = await User.findById(req.session.user.id);
-    if (!user || !user.is_verified) delete req.session.user;
+    if (!user || !user.is_verified || user.is_active === false) delete req.session.user;
     else {
       req.session.user = user;
       res.locals.user = user;
@@ -13,6 +13,15 @@ async function loadUser(req, res, next) {
 }
 function requireAuth(req, res, next) {
   if (!req.session.user) return res.redirect("/login");
+  next();
+}
+function requireApiAuth(req, res, next) {
+  if (!req.session.user) return res.status(401).json({ error: "Log in required." });
+  next();
+}
+function requireApiTenant(req, res, next) {
+  if (req.session.user.role !== "tenant")
+    return res.status(403).json({ error: "Tenant access required." });
   next();
 }
 function requireRole(role) {
@@ -36,6 +45,8 @@ function dashboard(role) {
 module.exports = {
   loadUser,
   requireAuth,
+  requireApiAuth,
+  requireApiTenant,
   requireTenant: requireRole("tenant"),
   requireLandlord: requireRole("landlord"),
   requireSuperAdmin: requireRole("superadmin"),

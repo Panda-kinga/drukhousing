@@ -4,12 +4,14 @@ const now = "(clock_timestamp() AT TIME ZONE 'Asia/Thimphu')";
 async function createListing(landlordId, data, files) {
   return db.tx(async (t) => {
     const listing = await t.one(
-      `INSERT INTO listings(landlord_id,title,location,price,type,lease_years,deadline)
-      SELECT $1,$2,$3,$4,$5,$6,$7::timestamp WHERE $7::timestamp > ${now} RETURNING id`,
+      `INSERT INTO listings(landlord_id,title,location,dzongkhag,gewog,price,type,lease_years,deadline)
+      SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9::timestamp WHERE $9::timestamp > ${now} RETURNING id`,
       [
         landlordId,
         data.title,
         data.location,
+        data.dzongkhag,
+        data.gewog,
         data.price,
         data.type,
         data.lease_years,
@@ -20,13 +22,14 @@ async function createListing(landlordId, data, files) {
     return listing;
   });
 }
-function browse(search = "", type = "") {
+function browse(search = "", type = "", dzongkhag = "", gewog = "") {
   return db.any(
     `SELECT l.*, (SELECT MIN(id) FROM listing_photos WHERE listing_id=l.id) AS photo_id
     FROM listings l WHERE l.is_active=true AND l.deadline > ${now}
     AND (l.title ILIKE $1 OR l.location ILIKE $1) AND ($2='' OR l.type=$2)
+    AND ($3='' OR l.dzongkhag=$3) AND ($4='' OR l.gewog=$4)
     ORDER BY l.created_at DESC,l.id DESC`,
-    ["%" + search + "%", type],
+    ["%" + search + "%", type, dzongkhag, gewog],
   );
 }
 function findActive(id, connection = db, lock = false) {
@@ -59,6 +62,16 @@ function deactivate(id) {
     [id],
   );
 }
+function restore(id) {
+  return db.oneOrNone("UPDATE listings SET is_active=true WHERE id=$1 RETURNING id", [id]);
+}
+function updateListing(id, landlordId, data) {
+  return db.oneOrNone(
+    `UPDATE listings SET title=$3,location=$4,dzongkhag=$5,gewog=$6,price=$7,type=$8,lease_years=$9,deadline=$10::timestamp
+     WHERE id=$1 AND landlord_id=$2 RETURNING id`,
+    [id, landlordId, data.title, data.location, data.dzongkhag, data.gewog, data.price, data.type, data.lease_years, data.deadline],
+  );
+}
 module.exports = {
   createListing,
   browse,
@@ -67,4 +80,6 @@ module.exports = {
   forLandlord,
   allForAdmin,
   deactivate,
+  restore,
+  updateListing,
 };

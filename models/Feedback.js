@@ -37,10 +37,26 @@ function getFeedbackForLandlord(landlordId) {
 function getFeedbackForTenant(tenantId) {
   return collection().find({ tenantId }).sort({ createdAt: -1 }).toArray();
 }
+async function getStats() {
+  const result = await collection().aggregate([
+    { $group: { _id: null, total: { $sum: 1 }, averageRating: { $avg: "$rating" } } },
+  ]).toArray();
+  return result[0] || { total: 0, averageRating: null };
+}
+function getAll() {
+  return collection().find({}).sort({ createdAt: -1 }).toArray();
+}
+function deleteById(id) {
+  const { ObjectId } = require("mongodb");
+  return collection().deleteOne({ _id: new ObjectId(id) });
+}
 module.exports = {
   ensureIndexes,
   createFeedback,
   getFeedbackForListing,
   getFeedbackForLandlord,
   getFeedbackForTenant,
+  getStats,
+  getAll,
+  deleteById,
 };

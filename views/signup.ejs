@@ -1,5 +1,5 @@
 <%- include('partials/header') %>
-<section class="auth-layout"><div class="auth-picture"><img src="/images/bhutan-home.png" alt="Traditional Bhutanese house"><div><span class="eyebrow">KUZUZANGPO</span><h2>A new home.<br>A new beginning.</h2></div></div><div class="auth-panel"><span class="eyebrow">WELCOME TO DRUKHOUSING</span><h1>Create an account</h1><p class="muted">A few details, and you are ready.</p>
+<section class="auth-layout"><div class="auth-picture"><img src="/images/bhutan-home.png" alt="Traditional Bhutanese house"><div><span class="eyebrow">KUZUZANGPO</span><h2>A new home.<br>A new beginning.</h2></div></div><div class="auth-panel"><span class="eyebrow">WELCOME TO <%= siteName.toUpperCase() %></span><h1>Create an account</h1><p class="muted">A few details, and you are ready.</p>
 <form action="/signup" method="POST" class="stack"><input type="hidden" name="_csrf" value="<%= csrf %>">
 <label for="name">Full name</label><input id="name" name="name" maxlength="100" autocomplete="name" required>
 <label for="email">Email address</label><input id="email" name="email" type="email" maxlength="254" autocomplete="email" required>
