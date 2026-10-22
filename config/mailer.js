@@ -5,8 +5,10 @@ const gmailPassword = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s/g, "");
 const fromName = (process.env.MAIL_FROM_NAME || "DrukHousing").trim();
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  // Port 587 uses STARTTLS and works reliably on cloud hosts.
+  port: 587,
+  secure: false,
+  requireTLS: true,
   auth: { user: gmailUser, pass: gmailPassword },
 });
 function escapeHtml(value) {
