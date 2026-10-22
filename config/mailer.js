@@ -1,8 +1,13 @@
 const nodemailer = require("nodemailer");
-const fromName = process.env.MAIL_FROM_NAME || "Campus Eats";
+const gmailUser = (process.env.GMAIL_USER || "").trim();
+// Google displays app passwords with spaces; SMTP needs the characters only.
+const gmailPassword = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s/g, "");
+const fromName = (process.env.MAIL_FROM_NAME || "DrukHousing").trim();
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: { user: gmailUser, pass: gmailPassword },
 });
 function escapeHtml(value) {
   return String(value)
@@ -14,7 +19,7 @@ function escapeHtml(value) {
 }
 async function sendEmail(to, subject, { name, link, text }) {
   return transporter.sendMail({
-    from: `"${fromName}" <${process.env.GMAIL_USER}>`,
+    from: `"${fromName}" <${gmailUser}>`,
     to,
     subject,
     text,
