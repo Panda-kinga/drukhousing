@@ -10,8 +10,13 @@ function token() {
 function hashToken(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
-function baseUrl() {
-  return (process.env.BASE_URL || "").replace(/\/$/, "");
+function baseUrl(req) {
+  // In local development, use the address used to open the app.
+  // Production always uses the trusted BASE_URL setting.
+  const configuredUrl = process.env.BASE_URL || "";
+  if (configuredUrl.startsWith("http://") && req && req.get("host"))
+    return `${req.protocol}://${req.get("host")}`;
+  return configuredUrl.replace(/\/$/, "");
 }
 function showSignup(req, res) {
   res.render("signup", { title: "Create an account" });
@@ -29,7 +34,7 @@ async function signup(req, res) {
   if (!["tenant", "landlord"].includes(role))
     v.fail("Choose Tenant or Landlord.");
   const verificationToken = token();
-  const verificationLink = baseUrl() + "/verify/" + verificationToken;
+  const verificationLink = baseUrl(req) + "/verify/" + verificationToken;
   await User.createUser(
     name,
     email,
@@ -135,7 +140,7 @@ async function forgotPassword(req, res) {
         "Reset your DrukHousing password",
         {
           name: "there",
-          link: baseUrl() + "/reset-password/" + resetToken,
+          link: baseUrl(req) + "/reset-password/" + resetToken,
           text: "This password reset link expires in one hour.",
         },
       );

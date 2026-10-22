@@ -18,7 +18,7 @@ async function start() {
     await connectMongo();
     await Feedback.ensureIndexes();
   }
-  return app.listen(process.env.PORT || 3000, () =>
+  return app.listen(process.env.PORT || 3000, "0.0.0.0", () =>
     console.log("DrukHousing: " + process.env.BASE_URL),
   );
 }
