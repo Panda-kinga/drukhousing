@@ -36,11 +36,15 @@
 
     const savedDzongkhag = form.dataset.dzongkhagValue || "";
     let savedGewog = form.dataset.gewogValue || "";
-    for (const name of Object.keys(locations)) {
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = name;
-      dzongkhagSelect.appendChild(option);
+    // Home search options are rendered by EJS so they work even if this
+    // script fails to load. Only populate selects that have just a placeholder.
+    if (dzongkhagSelect.options.length <= 1) {
+      for (const name of Object.keys(locations)) {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        dzongkhagSelect.appendChild(option);
+      }
     }
     if (savedDzongkhag) dzongkhagSelect.value = savedDzongkhag;
 
