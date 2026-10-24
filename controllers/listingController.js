@@ -14,7 +14,7 @@ function locationFields(body) {
 }
 
 function showCreate(req, res) {
-  res.render("listing-create", { title: "List your home" });
+  res.render("listing-create", { title: "List your home", locations: bhutanLocations });
 }
 
 async function showEdit(req, res) {
