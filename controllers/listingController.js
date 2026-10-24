@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs/promises");
 const Listing = require("../models/Listing");
 const Photo = require("../models/ListingPhoto");
 const Application = require("../models/Application");
@@ -96,7 +97,15 @@ async function photo(req, res) {
   const photo = await Photo.findById(v.id(req.params.id));
   if (!photo) v.fail("Photo not found.", 404);
   res.set("Cache-Control", "no-store");
-  res.sendFile(path.join(folder, path.basename(photo.file_path)));
+  const filePath = path.join(folder, path.basename(photo.file_path));
+  try {
+    await fs.access(filePath);
+    return res.sendFile(filePath);
+  } catch {
+    // Render's free filesystem can lose old uploads after a restart.
+    // Return a real image so the page never renders a broken image link.
+    return res.sendFile(path.join(__dirname, "../public/images/bhutan-home.png"));
+  }
 }
 async function apiList(req, res) {
   const search = v.text(req.query.q, "Search", 100, false);

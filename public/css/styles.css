@@ -875,6 +875,11 @@ legend {
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
 }
+.photo-gallery a {
+  display: block;
+  overflow: hidden;
+  border-radius: 7px;
+}
 .photo-gallery a:first-child {
   grid-column: 1/-1;
 }
