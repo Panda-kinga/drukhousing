@@ -10,7 +10,7 @@
 </section>
 <section id="homes" class="homes-section">
   <div class="section-heading"><div><span class="eyebrow">FIND YOUR SPACE</span><h2>Homes open for applications</h2></div><span class="muted"><%= listings.length %> available</span></div>
-  <form class="search-bar" action="/" method="GET" data-live-search data-location-search data-dzongkhag-value="<%= dzongkhag %>" data-gewog-value="<%= gewog %>">
+  <form class="search-bar" action="/" method="GET" data-live-search data-location-search data-locations="<%= JSON.stringify(locations) %>" data-dzongkhag-value="<%= dzongkhag %>" data-gewog-value="<%= gewog %>">
     <div><label for="dzongkhag">Dzongkhag</label><select id="dzongkhag" name="dzongkhag" data-dzongkhag><option value="">All Dzongkhags</option></select></div>
     <div><label for="gewog">Gewog</label><select id="gewog" name="gewog" data-gewog disabled><option value="">All Gewogs</option></select></div>
     <div><label for="type">Home type</label><select id="type" name="type"><option value="">All homes</option><% for (const item of ['apartment','house','room']) { %><option value="<%= item %>" <%= type===item?'selected':'' %>><%= item.charAt(0).toUpperCase()+item.slice(1) %></option><% } %></select></div>
