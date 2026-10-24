@@ -1,11 +1,9 @@
-const path = require("path");
-const fs = require("fs/promises");
 const Listing = require("../models/Listing");
 const Photo = require("../models/ListingPhoto");
 const Application = require("../models/Application");
 const v = require("../middleware/validation");
-const { folder } = require("../middleware/upload");
 const { bhutanLocations, isValidDzongkhag, isValidGewog } = require("../data/bhutanLocations");
+
 function locationFields(body) {
   const dzongkhag = v.text(body.dzongkhag, "Dzongkhag", 50);
   const gewog = v.text(body.gewog, "Gewog", 80);
@@ -14,9 +12,11 @@ function locationFields(body) {
     v.fail("Choose a Gewog that belongs to the selected Dzongkhag.");
   return { dzongkhag, gewog };
 }
+
 function showCreate(req, res) {
   res.render("listing-create", { title: "List your home" });
 }
+
 async function showEdit(req, res) {
   const id = v.id(req.params.id);
   const listing = await Listing.findActive(id);
@@ -24,6 +24,7 @@ async function showEdit(req, res) {
   if (listing.landlord_id !== req.session.user.id) v.fail("Access denied.", 403);
   res.render("listing-edit", { title: "Edit your home", listing });
 }
+
 async function create(req, res) {
   const data = {
     title: v.text(req.body.title, "Title", 150),
@@ -59,6 +60,7 @@ async function create(req, res) {
   req.uploadSaved = true;
   res.redirect("/listings/" + listing.id);
 }
+
 async function update(req, res) {
   const data = {
     title: v.text(req.body.title, "Title", 150),
@@ -78,6 +80,7 @@ async function update(req, res) {
     v.fail("Access denied.", 403);
   res.redirect("/landlord/dashboard");
 }
+
 async function details(req, res) {
   const id = v.id(req.params.id);
   const listing = await Listing.findActive(id);
@@ -93,20 +96,19 @@ async function details(req, res) {
     application,
   });
 }
+
 async function photo(req, res) {
   const photo = await Photo.findById(v.id(req.params.id));
   if (!photo) v.fail("Photo not found.", 404);
-  res.set("Cache-Control", "no-store");
-  const filePath = path.join(folder, path.basename(photo.file_path));
-  try {
-    await fs.access(filePath);
-    return res.sendFile(filePath);
-  } catch {
-    // Render's free filesystem can lose old uploads after a restart.
-    // Return a real image so the page never renders a broken image link.
-    return res.sendFile(path.join(__dirname, "../public/images/bhutan-home.png"));
-  }
+  res.set({
+    "Content-Type": photo.content_type,
+    "Content-Length": String(photo.image_data.length),
+    "X-Content-Type-Options": "nosniff",
+    "Cache-Control": "public, max-age=86400",
+  });
+  return res.send(photo.image_data);
 }
+
 async function apiList(req, res) {
   const search = v.text(req.query.q, "Search", 100, false);
   const type = v.text(req.query.type, "Type", 20, false);
@@ -120,15 +122,22 @@ async function apiList(req, res) {
     v.fail("Invalid Gewog for the selected Dzongkhag.");
   res.json(await Listing.browse(search, type, dzongkhag, gewog));
 }
+
 function apiLocations(req, res) {
   res.json(bhutanLocations);
 }
+
 async function apiDetail(req, res) {
   let id;
-  try { id = v.id(req.params.id); } catch (error) { v.fail("Listing not found.", 404); }
+  try {
+    id = v.id(req.params.id);
+  } catch (error) {
+    v.fail("Listing not found.", 404);
+  }
   const listing = await Listing.findActive(id);
   if (!listing) v.fail("Listing not found.", 404);
   listing.photos = await Photo.forListing(listing.id);
   res.json(listing);
 }
+
 module.exports = { showCreate, showEdit, create, update, details, photo, apiList, apiLocations, apiDetail };
