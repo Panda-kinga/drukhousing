@@ -53,17 +53,14 @@ async function signup(req, res) {
       },
     );
   } catch (error) {
-    console.error(
-      "Verification email could not be sent:",
-      error.code || "SMTP error",
-    );
+    console.error("Verification email could not be sent:", error.message);
     console.error("Verification link:", verificationLink);
     return res
       .status(503)
       .render("message", {
         title: "Email could not be sent",
         message:
-          "Your account was saved, but the verification email could not be sent. Check the Gmail settings using the recovery steps in README, then retry signup.",
+          "Your account was saved, but the verification email could not be sent. The site administrator must check the mail bridge and Render logs, then retry signup.",
       });
   }
   res.render("message", {
