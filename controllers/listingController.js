@@ -99,13 +99,16 @@ async function details(req, res) {
 
 async function photo(req, res) {
   const photo = await Photo.findById(v.id(req.params.id));
+
   if (!photo) v.fail("Photo not found.", 404);
+
   res.set({
     "Content-Type": photo.content_type,
     "Content-Length": String(photo.image_data.length),
     "X-Content-Type-Options": "nosniff",
     "Cache-Control": "public, max-age=86400",
   });
+
   return res.send(photo.image_data);
 }
 

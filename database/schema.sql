@@ -31,11 +31,36 @@ CREATE TABLE listings (
  created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Thimphu'),
  CHECK (deadline > created_at)
 );
+
 CREATE TABLE listing_photos (
- id SERIAL PRIMARY KEY,
- listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
- file_path TEXT NOT NULL CHECK (length(trim(file_path)) > 0)
+  id SERIAL PRIMARY KEY,
+  listing_id INTEGER NOT NULL
+    REFERENCES listings(id) ON DELETE CASCADE,
+  file_path TEXT NOT NULL
+    CHECK (length(trim(file_path)) > 0),
+  image_data BYTEA,
+  content_type VARCHAR(50),
+
+  CONSTRAINT listing_photos_image_pair
+    CHECK ((image_data IS NULL) = (content_type IS NULL)),
+
+  CONSTRAINT listing_photos_content_type
+    CHECK (
+      content_type IS NULL
+      OR content_type IN (
+        'image/jpeg',
+        'image/png',
+        'image/webp'
+      )
+    ),
+
+  CONSTRAINT listing_photos_image_size
+    CHECK (
+      image_data IS NULL
+      OR octet_length(image_data) BETWEEN 1 AND 5242880
+    )
 );
+
 CREATE TABLE applications (
  id SERIAL PRIMARY KEY,
  listing_id INTEGER NOT NULL REFERENCES listings(id),
