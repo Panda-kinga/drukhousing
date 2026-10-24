@@ -1,6 +1,7 @@
 const db = require("../config/db");
 const Photo = require("./ListingPhoto");
 const now = "(clock_timestamp() AT TIME ZONE 'Asia/Thimphu')";
+
 async function createListing(landlordId, data, files) {
   return db.tx(async (t) => {
     const listing = await t.one(
@@ -22,9 +23,13 @@ async function createListing(landlordId, data, files) {
     return listing;
   });
 }
+
 function browse(search = "", type = "", dzongkhag = "", gewog = "") {
   return db.any(
-    `SELECT l.*, (SELECT MIN(id) FROM listing_photos WHERE listing_id=l.id) AS photo_id
+    `SELECT l.*, (
+      SELECT MIN(id) FROM listing_photos
+      WHERE listing_id=l.id AND image_data IS NOT NULL
+    ) AS photo_id
     FROM listings l WHERE l.is_active=true AND l.deadline > ${now}
     AND (l.title ILIKE $1 OR l.location ILIKE $1) AND ($2='' OR l.type=$2)
     AND ($3='' OR l.dzongkhag=$3) AND ($4='' OR l.gewog=$4)
@@ -32,11 +37,13 @@ function browse(search = "", type = "", dzongkhag = "", gewog = "") {
     ["%" + search + "%", type, dzongkhag, gewog],
   );
 }
+
 function findActive(id, connection = db, lock = false) {
   let sql = `SELECT *, deadline > ${now} AS is_open FROM listings WHERE id=$1 AND is_active=true`;
   if (lock) sql += " FOR UPDATE";
   return connection.oneOrNone(sql, [id]);
 }
+
 // Recheck time AFTER a row lock is acquired (a competing transaction may have waited).
 function isOpen(id, connection = db) {
   return connection.one(
@@ -44,6 +51,7 @@ function isOpen(id, connection = db) {
     [id],
   );
 }
+
 function forLandlord(landlordId) {
   return db.any(
     `SELECT l.*, (SELECT COUNT(*) FROM applications a WHERE a.listing_id=l.id) AS application_count
@@ -51,20 +59,24 @@ function forLandlord(landlordId) {
     [landlordId],
   );
 }
+
 function allForAdmin() {
   return db.any(
     `SELECT l.*,u.name AS landlord_name FROM listings l JOIN users u ON u.id=l.landlord_id ORDER BY l.id DESC`,
   );
 }
+
 function deactivate(id) {
   return db.oneOrNone(
     "UPDATE listings SET is_active=false WHERE id=$1 RETURNING id",
     [id],
   );
 }
+
 function restore(id) {
   return db.oneOrNone("UPDATE listings SET is_active=true WHERE id=$1 RETURNING id", [id]);
 }
+
 function updateListing(id, landlordId, data) {
   return db.oneOrNone(
     `UPDATE listings SET title=$3,location=$4,dzongkhag=$5,gewog=$6,price=$7,type=$8,lease_years=$9,deadline=$10::timestamp
@@ -72,6 +84,7 @@ function updateListing(id, landlordId, data) {
     [id, landlordId, data.title, data.location, data.dzongkhag, data.gewog, data.price, data.type, data.lease_years, data.deadline],
   );
 }
+
 module.exports = {
   createListing,
   browse,
