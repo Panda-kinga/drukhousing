@@ -17,12 +17,16 @@ for (const button of document.querySelectorAll("[data-password-toggle]")) {
   });
 }
 
+// Never replace a missing landlord-uploaded photo with the same stock image.
+// Remove only the failed photo tile; other photos remain distinct.
+function removeBrokenPhoto(image) {
+  const tile = image.closest(".photo-gallery a, .card-image");
+  if (tile) tile.remove();
+  else image.remove();
+}
+
 for (const image of document.querySelectorAll("[data-image-fallback]")) {
-  image.addEventListener("error", () => {
-    image.onerror = null;
-    image.src = "/images/bhutan-home.png";
-    image.alt = "DrukHousing home placeholder";
-  });
+  image.addEventListener("error", () => removeBrokenPhoto(image), { once: true });
 }
 
 const animatedItems = document.querySelectorAll(
@@ -57,11 +61,7 @@ if (liveSearch && listingGrid) {
           image.src = "/photos/" + listing.photo_id;
           image.alt = "Photo of " + listing.title;
           image.loading = "lazy";
-          image.addEventListener("error", () => {
-            image.onerror = null;
-            image.src = "/images/bhutan-home.png";
-            image.alt = "DrukHousing home placeholder";
-          });
+          image.addEventListener("error", () => removeBrokenPhoto(image), { once: true });
           link.appendChild(image);
         } else {
           const empty = document.createElement("div");
