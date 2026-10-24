@@ -11,6 +11,12 @@ const otherEmail = `property-other-${suffix}@example.com`;
 const tenantEmail = `property-tenant-${suffix}@example.com`;
 let landlordId, otherId, tenantId, listingId;
 
+const parseBinary = (response, callback) => {
+  const chunks = [];
+  response.on("data", (chunk) => chunks.push(chunk));
+  response.on("end", () => callback(null, Buffer.concat(chunks)));
+};
+
 async function login(email) {
   const agent = request.agent(app);
   const page = await agent.get("/login");
@@ -47,6 +53,23 @@ test("a landlord can create a property", async () => {
   const result = await landlord.post("/landlord/listings").field("_csrf", token).field("title", "Property Test Home").field("location", "Paro town").field("dzongkhag", "Paro").field("gewog", "Dokar").field("price", "12000").field("type", "house").field("lease_years", "1").field("deadline", deadline()).attach("photos", tinyPng, { filename: "test.png", contentType: "image/png" });
   expect(result.status).toBe(302);
   listingId = Number(result.headers.location.split("/").pop());
+});
+
+test("uploaded listing photos persist in PostgreSQL and are served as image data", async () => {
+  const stored = await db.one(
+    "SELECT id, image_data, content_type FROM listing_photos WHERE listing_id=$1 ORDER BY id LIMIT 1",
+    [listingId],
+  );
+  expect(stored.image_data).toEqual(tinyPng);
+  expect(stored.content_type).toBe("image/png");
+
+  const response = await request(app)
+    .get("/photos/" + stored.id)
+    .buffer(true)
+    .parse(parseBinary);
+  expect(response.status).toBe(200);
+  expect(response.headers["content-type"]).toMatch(/^image\/png/);
+  expect(response.body).toEqual(tinyPng);
 });
 
 test("a tenant cannot create a property", async () => {

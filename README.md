@@ -104,7 +104,7 @@ Run `node db-test.js`. Visit `http://localhost:3001/db-test`.
 
 ### 2. PostgreSQL tables and migrations
 
-Create an empty database named `drukhousing`, open its pgAdmin Query Tool, and run `database/schema.sql` once. Then run every SQL file in `migrations/` in number order. The current migration adds `users.is_active` and the `admin_actions` table. For tests, create a separate `drukhousing_test` database, run the same schema and migrations there, and never point tests at the development database.
+Create an empty database named `drukhousing`, open its pgAdmin Query Tool, and run `database/schema.sql` once. Then run every SQL file in `migrations/` in number order. The migrations add `users.is_active`, the `admin_actions` table, location fields, and persistent listing-photo storage. Before deploying the persistent-photo changes, run `migrations/004_listing_photo_data.sql` against the existing Neon PostgreSQL database once. Do not rerun `database/schema.sql` on a database that already contains real data. For tests, create a separate `drukhousing_test` database, run the same schema and migrations there, and never point tests at the development database.
 
 In pgAdmin, select **drukhousing → Query Tool**. Open and run `database/schema.sql`. Do not run it in the `postgres` maintenance database. Run it once on an empty database; it intentionally does not delete existing data.
 

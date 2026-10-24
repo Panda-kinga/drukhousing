@@ -11,7 +11,7 @@ const types = {
   ".webp": "image/webp",
   ".pdf": "application/pdf",
 };
-const storage = multer.diskStorage({
+const diskStorage = multer.diskStorage({
   destination: folder,
   filename: (req, file, callback) =>
     callback(
@@ -19,9 +19,13 @@ const storage = multer.diskStorage({
       crypto.randomUUID() + path.extname(file.originalname).toLowerCase(),
     ),
 });
+
 function uploader(allowPdf, count) {
   return multer({
-    storage,
+    // Listing photos live in PostgreSQL, so buffer them in memory.
+    // Application documents remain disk-backed and are served through the
+    // existing authorization-checked download route.
+    storage: allowPdf ? diskStorage : multer.memoryStorage(),
     limits: {
       fileSize: 5 * 1024 * 1024,
       files: count,
@@ -50,10 +54,13 @@ function uploader(allowPdf, count) {
     },
   });
 }
+
 async function validateFiles(req, res, next) {
   for (const file of req.files || []) {
-    const buffer = await fs.readFile(file.path);
-    const extension = path.extname(file.filename);
+    const buffer = file.buffer || (file.path ? await fs.readFile(file.path) : null);
+    const extension = path.extname(file.originalname).toLowerCase();
+    if (!buffer)
+      throw Object.assign(new Error("The uploaded file could not be read."), { status: 400 });
     let valid = false;
     if (extension === ".jpg" || extension === ".jpeg")
       valid = buffer.subarray(0, 3).equals(Buffer.from([255, 216, 255]));
@@ -75,11 +82,14 @@ async function validateFiles(req, res, next) {
   }
   next();
 }
+
 async function cleanup(req) {
   if (req.uploadSaved) return;
-  for (const file of req.files || [])
-    await fs.unlink(file.path).catch(() => {});
+  for (const file of req.files || []) {
+    if (file.path) await fs.unlink(file.path).catch(() => {});
+  }
 }
+
 module.exports = {
   photos: uploader(false, 6).array("photos", 6),
   documents: uploader(true, 3).array("documents", 3),
