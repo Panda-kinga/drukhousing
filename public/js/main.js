@@ -6,6 +6,25 @@ for (const form of forms) {
   });
 }
 
+for (const button of document.querySelectorAll("[data-password-toggle]")) {
+  button.addEventListener("click", () => {
+    const input = document.getElementById(button.getAttribute("aria-controls"));
+    if (!input) return;
+    const visible = input.type === "text";
+    input.type = visible ? "password" : "text";
+    button.textContent = visible ? "Show" : "Hide";
+    button.setAttribute("aria-label", visible ? "Show password" : "Hide password");
+  });
+}
+
+for (const image of document.querySelectorAll("[data-image-fallback]")) {
+  image.addEventListener("error", () => {
+    image.onerror = null;
+    image.src = "/images/bhutan-home.png";
+    image.alt = "DrukHousing home placeholder";
+  });
+}
+
 const animatedItems = document.querySelectorAll(
   ".page, .detail, .auth-layout, .form-panel, .message-panel, .site-footer, " +
     ".hero-copy, .hero-image, .homes-section, .listing-card, .stats > div, " +
@@ -38,6 +57,11 @@ if (liveSearch && listingGrid) {
           image.src = "/photos/" + listing.photo_id;
           image.alt = "Photo of " + listing.title;
           image.loading = "lazy";
+          image.addEventListener("error", () => {
+            image.onerror = null;
+            image.src = "/images/bhutan-home.png";
+            image.alt = "DrukHousing home placeholder";
+          });
           link.appendChild(image);
         } else {
           const empty = document.createElement("div");

@@ -476,9 +476,11 @@ textarea {
   display: block;
   position: relative;
   overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--tint);
 }
 .card-image img {
-  height: 220px;
+  height: 100%;
   width: 100%;
   object-fit: cover;
   transition: transform 500ms ease;
@@ -1025,11 +1027,41 @@ th {
   top: 10px;
 }
 .no-photo {
-  height: 220px;
+  height: 100%;
+  min-height: 220px;
   background: var(--tint);
   display: grid;
   place-items: center;
   color: var(--muted);
+}
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+.password-field input {
+  padding-right: 78px;
+}
+.password-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--maroon);
+  box-shadow: none;
+  font-size: 12px;
+}
+.password-toggle:hover,
+.password-toggle:active {
+  transform: translateY(-50%);
+  background: var(--tint);
+  color: var(--maroon);
+  box-shadow: none;
 }
 .animate-in {
   animation: rise-in 650ms var(--animation-delay, 0ms) cubic-bezier(.22, .8, .28, 1) both;
