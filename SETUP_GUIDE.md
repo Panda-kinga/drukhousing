@@ -15,9 +15,10 @@ Create a MongoDB database for feedback. MongoDB creates it when the first feedba
 
 In pgAdmin, select the correct database and run [database/schema.sql](./database/schema.sql). Then run these files in order:
 
-1. [migrations/001_roles.sql](./migrations/001_roles.sql)
-2. [migrations/002_user_status.sql](./migrations/002_user_status.sql)
-3. [migrations/003_locations.sql](./migrations/003_locations.sql)
+1. [migrations/002_user_status.sql](./migrations/002_user_status.sql)
+2. [migrations/003_locations.sql](./migrations/003_locations.sql)
+
+The role check for `tenant`, `landlord`, and `superadmin` is already in [database/schema.sql](./database/schema.sql), so there is no `001_roles.sql` file to run.
 
 Run the schema and all migrations in both PostgreSQL databases. The migrations are safe to run again because they use idempotent changes. They do not delete existing listings or users.
 
@@ -46,8 +47,8 @@ Set your own values in `.env`:
 | `MONGO_URI` | MongoDB connection string. |
 | `MONGO_DB_NAME` | MongoDB database used for feedback. |
 | `SESSION_SECRET` | Long random value for sessions. |
-| `GMAIL_USER` | Gmail address used to send email. |
-| `GMAIL_APP_PASSWORD` | Gmail app password. |
+| `MAIL_BRIDGE_URL` | Google Apps Script web-app URL used to send email. |
+| `MAIL_BRIDGE_SECRET` | Secret shared with the Google Apps Script. |
 | `MAIL_FROM_NAME` | Visible sender name, normally `DrukHousing`. |
 
 ## 4. Install and run the app
@@ -58,6 +59,8 @@ npm run dev
 ```
 
 Open `http://localhost:3000` in a browser. For a normal start without nodemon, run `npm start`.
+
+Email uses the Google Apps Script bridge in `scripts/googleMailBridge.gs`, so local development and Render use the same HTTPS mail path.
 
 ## 5. Create a super admin
 

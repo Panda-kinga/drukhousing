@@ -1,16 +1,6 @@
-const nodemailer = require("nodemailer");
-const gmailUser = (process.env.GMAIL_USER || "").trim();
-// Google displays app passwords with spaces; SMTP needs the characters only.
-const gmailPassword = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s/g, "");
+const bridgeUrl = (process.env.MAIL_BRIDGE_URL || "").trim();
+const bridgeSecret = (process.env.MAIL_BRIDGE_SECRET || "").trim();
 const fromName = (process.env.MAIL_FROM_NAME || "DrukHousing").trim();
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  // Port 587 uses STARTTLS and works reliably on cloud hosts.
-  port: 587,
-  secure: false,
-  requireTLS: true,
-  auth: { user: gmailUser, pass: gmailPassword },
-});
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -20,12 +10,25 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 async function sendEmail(to, subject, { name, link, text }) {
-  return transporter.sendMail({
-    from: `"${fromName}" <${gmailUser}>`,
-    to,
-    subject,
-    text,
-    html: `<div style="font-family:Arial,sans-serif;line-height:1.5;max-width:560px"><h1>DrukHousing</h1><p>Kuzuzangpo ${escapeHtml(name)}!</p><p>${escapeHtml(text)}</p><p><a href="${escapeHtml(link)}" style="display:inline-block;background:#7b1e2b;color:#fff;padding:12px 18px;text-decoration:none;border-radius:4px">Continue</a></p></div>`,
+  const html = `<div style="font-family:Arial,sans-serif;line-height:1.5;max-width:560px"><h1>DrukHousing</h1><p>Kuzuzangpo ${escapeHtml(name)}!</p><p>${escapeHtml(text)}</p><p><a href="${escapeHtml(link)}" style="display:inline-block;background:#7b1e2b;color:#fff;padding:12px 18px;text-decoration:none;border-radius:4px">Continue</a></p></div>`;
+  const response = await fetch(bridgeUrl, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      secret: bridgeSecret,
+      to,
+      subject,
+      text,
+      html,
+      fromName,
+    }),
   });
+  const details = await response.text();
+  if (!response.ok) {
+    throw new Error(`Mail bridge failed (${response.status}): ${details}`);
+  }
+  const result = details ? JSON.parse(details) : { ok: true };
+  if (!result.ok) throw new Error(`Mail bridge rejected the email: ${result.error || "unknown error"}`);
+  return result;
 }
 module.exports = { sendEmail };

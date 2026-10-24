@@ -6,7 +6,7 @@ const Feedback = require("./models/Feedback");
 async function start() {
   for (const key of [
     "DB_HOST", "DB_NAME", "DB_USER", "DB_PASS", "MONGO_URI",
-    "SESSION_SECRET", "GMAIL_USER", "GMAIL_APP_PASSWORD",
+    "SESSION_SECRET", "MAIL_BRIDGE_URL", "MAIL_BRIDGE_SECRET",
   ]) {
     if (!process.env[key] || process.env[key].startsWith("replace_"))
       throw new Error("Please set " + key + " in .env");

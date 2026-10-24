@@ -7,7 +7,7 @@ This guide prepares the app for Render, Neon PostgreSQL and MongoDB Atlas. It do
 1. Create a Neon PostgreSQL project and database.
 2. Open the Neon SQL editor.
 3. Run `database/schema.sql` in a new database.
-4. Run each migration in order: `001_roles.sql`, `002_user_status.sql`, and `003_locations.sql`.
+4. Run `002_user_status.sql` and then `003_locations.sql`. The role check is already included in `database/schema.sql`.
 5. Keep the Neon connection details ready for Render.
 
 For MongoDB:
@@ -35,8 +35,8 @@ Add these variables in the Render service settings. Use your own values; never c
 | `MONGO_URI` | MongoDB Atlas connection string. |
 | `MONGO_DB_NAME` | Feedback database name, for example `drukhousing_feedback`. |
 | `SESSION_SECRET` | Long random secret used to protect login sessions. |
-| `GMAIL_USER` | Gmail address used to send mail. |
-| `GMAIL_APP_PASSWORD` | Gmail app password, not the normal Gmail password. |
+| `MAIL_BRIDGE_URL` | Google Apps Script web-app URL used to send mail over HTTPS. |
+| `MAIL_BRIDGE_SECRET` | Secret shared only between Render and the Apps Script. |
 | `MAIL_FROM_NAME` | Visible sender name, such as `Campus Eats`. |
 
 ## 3. Deploy from GitHub
@@ -48,6 +48,15 @@ Add these variables in the Render service settings. Use your own values; never c
 5. Deploy and wait for the service to become healthy.
 6. Add `BASE_URL` using the exact Render public URL, with no trailing slash.
 7. Redeploy after saving `BASE_URL`.
+
+### Google Apps Script mail bridge
+
+1. Open [script.google.com](https://script.google.com/) and create a new project.
+2. Copy the code from `scripts/googleMailBridge.gs` into the project.
+3. Replace `BRIDGE_SECRET` with a long random value. Use the same value for Render's `MAIL_BRIDGE_SECRET`.
+4. Deploy it as a Web app. Choose **Execute as me** and **Who has access: Anyone**.
+5. Authorize Gmail when Google asks, then copy the `/exec` URL into Render as `MAIL_BRIDGE_URL`.
+6. Remove `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and `BREVO_API_KEY` from Render. Redeploy.
 
 ## 4. Post-deploy checklist
 
